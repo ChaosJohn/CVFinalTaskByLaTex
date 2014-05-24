@@ -1,0 +1,133 @@
+\documentclass[9pt]{article}
+	\usepackage{geometry}
+	\geometry{letterpaper}
+	
+	\usepackage{fontspec,xltxtra,xunicode}
+	\defaultfontfeatures{Mapping=tex-text}
+	\setromanfont{SimSun} 
+	\XeTeXlinebreaklocale “zh”
+	\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt 
+	
+	\newfontfamily{\H}{SimHei}
+	\newfontfamily{\E}{Arial}
+	
+	\usepackage{graphicx} 
+	\usepackage{titlesec}
+	\usepackage{multicol} 
+	
+	\title{\huge \H 基于主成分分析和线性判别的人脸识别算法}
+	\author{\large 虞嘉豪}
+	\date{}
+
+\begin{document}
+
+% 中文标题(默认标题)
+\maketitle
+% 中文摘要 和 关键词
+\paragraph{\H 摘要: }
+	{\H 目的: } 人脸识别在安全邻域一直是一个热门话题，是基于脸部特征信息进行身份识别的一种生物识别技术。本文提出了一种基于PCA算法和LDA算法的高效人脸识别方法，具有较高的识别准确率。
+	{\H 方法: } 文本提出的方法运用主成分分析将人脸图像的高维空间表示降维到较低维的空间上，并且保持原有图像的大部分特征，然后运用线性判别方法对PCA的结果进行优化，提高识别的准确性。
+	{\H 结果: } 先只利用PCA算法进行人脸识别，准确率高达85\%；再利用LDA算法进行优化，将准确率提高了3.33个百分点。
+	{\H 结论: } 运用PCA和LDA算法相结合的人脸识别方法具有较高的准确率，具有非常好的市场前景。
+\paragraph{\H 关键词: } 人脸识别 主成分分析(PCA) 线性判别分析(LDA) 特征脸 \\ \\ \\
+
+% 英文标题
+\begin{center}
+	{\Large \H Face-Recognition Based on $Principal Component Analysis$ and $Linear Discriminant Analysis$} \\
+	% 设置临时的2倍行距
+	\linespread{2}\selectfont {\large Chaos John}
+\end{center}
+% 英文摘要 和 关键词
+\paragraph{\H Abstract: } 
+	{\H Objective: } Face-Recognition has always been a hot topic in the field of security, which is a kind of technique for human identification using facial features. We proposed a effective method based on $PCA$ algorithm and $LDA$ algorithm, having a high recognition accuracy.
+	{\H Method: } The method reduces the image representation from high dimensional space to low dimensional space using $Principal Component Analysis$ without losing the main features of the image, following the $Linear Discriminant Analysis$, thus improving the recognition accuracy.
+	{\H Result: } The recognition accuracy using only $PCA$ is up to 85\%, and can be increased by  3.33\% if enhanced by $LDA$. 
+	{\H Conclusion: } The method combining $PCA$ and $LDA$ algorithms can bring us a higer recognition accuracy, which has good market prospects. 
+\paragraph{\H Key Words: } Face-Recognition Principal Component Analysis(PCA) Linear Discriminant Analysis(LDA) EgenFace 
+
+\vfill
+\newpage
+	
+% 正文
+\begin{multicols}{2} 
+
+	\section{\H 引言}
+		\paragraph \indent 人脸识别，是基于人的脸部特征信息进行身份识别的一种生物识别技术。用摄像机或摄像头采集含有人脸的图像或视频流，并自动在图像中检测和跟踪人脸，进而对检测到的人脸进行脸部的一系列相关技术，通常也叫做人像识别、面部识别。本文先采用PCA算法对图像空间进行降维处理，得出每张图片的描述向量，再利用LDA算法对描述向量进行线性判别，从而将图片中的人脸所属识别出来。
+	
+	\section{\H 图像的标准化处理} 
+		\subsection{\H 标准化的原因}
+			\paragraph{\H 彩色图片的干扰: } 大部分的彩色图片都是RGB模型，每一个像素点都是红、绿、蓝三个通道的亮度值构成，从而表现出颜色的变化。但三个通道的计算量给计算机带来了很大的负担，并且也不方便处理。
+			\paragraph{\H 图片拍摄尺度的影响: } 对于输入图片来说，图片中的人脸只占其中的一部分，并且无法保证图片的尺寸相同，也无法保证图片中人脸所占比例相同，这就对人脸识别造成了很大的干扰。
+			\paragraph{\H 图片维度表示不利于处理: } 一般图片在图像处理中都是$n*m$维的矩阵，无法方便地进行主成分分析。
+		
+		\subsection{\H 标准化方法}
+			\paragraph{\H 转化成灰度图像: } 将彩色图像转换成灰度图像，图像中的每个像素用8位数据表示，因此像素点值介于黑白间的256种灰度中的一种。该图像只有灰度等级，而没有颜色的变化。这样，我们可以将图像的RGB属性归一为灰度属性，由此就可以方便我们对图像进行处理。
+			\paragraph{\H 对拍摄图片进行裁剪: } 先在拍摄图片中将人脸区域“抠”出来，再进行缩放变换，达到统一的$SIZE*SIZE$大小。(在本文中约定$SIZE=100$)
+			\paragraph{\H 变换图像空间: } 将原本的$n*m$维的图像重新映射为$nm*1$维的图像空间，这样，就达到图像空间从矩阵到$nm$维向量的变换，从而方便我们进行主成分分析。
+	
+	\section{\H PCA主成分分析} 
+		\subsection{\H 定义}
+			\paragraph \indent 主成分分析(Principal Component Analysis, PCA)通常用于对高维数据集进行降维处理，保留低阶主成分，忽略高阶主成分，达到保持数据集最大的特征的效果。
+		\subsection{\H 原理} 
+			\paragraph \indent 对一组测试数据集来说，我们可以从中找出许多特征，但这些特征的个数非常庞大，而且大部分特征是没有用处的，对于$n*m$维的原始图片来说，其特征数为$nm$。
+			\paragraph \indent 我们采用$K-L$变换，使得：(1)减少特征的个数。(2)尽量能保持原有图片中比较重要的特征。(3)选取出来的特征都是彼此不相关的--去相关(衡量方法: 其协方差矩阵为对角阵)。
+			\paragraph \indent 选取$z$个主分量，形成变换矩阵$W_{nm*z}$，$y = W^{T}x$，(式中: $x_{nm*1}$是变换之前的矢量表示，$y_{z*1}$是变换后的表示)，由此可见，维数从$nm$维降到了$z$维。
+		\subsection{\H $K-L$变换} 
+			\subsubsection{\H 求协方差矩阵} 
+				\paragraph{\H 计算样本均值$\mu$: } $$\mu = \frac{1}{N}{\sum_{i = i}^{N} x_i} $$ 
+				\paragraph{\H 计算协方差矩阵$C$: } $$C = \sum_{k = 1}^{N} (x_k - \mu)(x_k - \mu)^{T} $$ \\ 
+				若记: $A = [x_1 - \mu, x_2 - \mu, ..., x_N - \mu] $ \\ 
+				则上述公式可变为：$C = {A}{A^T}$
+			\subsubsection{\H 求协方差矩阵的特征值和特征向量} 
+				\paragraph \indent ${C}{U_i} = {\lambda_i}{U_i}$，（式中：$\lambda_i$是特征值，$U_i$是相应的特征向量）。
+			\subsubsection{\H 求取变换矩阵$W$} 
+				\paragraph \indent 对$\lambda_i$进行排序，选取前$z$个，使得$$\sum_{i = 1}^{z} \lambda_i > {\eta}{\sum_{i = 1}^{nm} \lambda_i} $$ \\（通常$\eta$取0.9或0.99，尽可能不丢失主要特征）
+				\paragraph \indent 取这$z$个特征值所对应的特征向量形成变换矩阵$W_{nm*z}$。
+			\subsubsection{\H 求取降维向量}
+				\paragraph \indent $y = W^{T}x$
+			\subsubsection{\H 识别} 
+				\paragraph \indent 将y与训练集的降维向量进行比较，使用K近邻法确定这张图片中的人脸所属。
+			\subsubsection{\H 存在的问题与解决对策} 
+				\paragraph{\H 计算量}因为$A$是一个$nm*N$维的矩阵，所以$C = {A}{A^T}$的计算量是非常大的，所以我们可以采用奇异值分解(SingularValue Decomposition, SVD)定理，先求${A^T}{A}$的主特征值和特征向量，进而计算$U_i$，\\ 
+				\indent $U_i = {\lambda_i}^{-0.5}{A{V_i}}$（i = 1, 2, 3, ..., z）
+				\paragraph{\H 对光照亮度敏感} 不同图片的光照是不同的，而PCA没有利用类内和类间信息，就给人脸识别带来了干扰。对此，我们用LDA算法对PCA算法进行补充增强。
+	
+	\section{\H LDA线性判别分析} 
+		\subsection{\H 定义} 
+			\paragraph \indent 线性判别式分析(Linear Discriminant Analysis, LDA)，它选择与类内散布的正交矢量，使用这种方法能够使投影后模式样本的类间散布矩阵最大，并且同时类内散布矩阵最小。就是说，它能够保证投影后模式样本在新的空间中有最小的类内距离和最大的类间距离。从而能压制图像之间的与识别信息无关的差异（比如光照和人脸表情）。
+		\subsection{\H 算法} 
+			\subsubsection{\H 训练集的类内离散度矩阵$S_w$} 
+				\paragraph \indent $$S_w = \sum_{i = 1}^{c} \sum_{x_k \in X_i}(x_k - \mu_i)(x_k - \mu_i)^T$$
+			\subsubsection{\H 训练集的类间离散度矩阵$S_b$} 
+				\paragraph \indent $$S_b = \sum_{i = 1}^{c} N_i(\mu_i - \mu)(\mu_i - \mu)^T$$
+			\subsubsection{\H 求解LDA变换} 
+				\paragraph \indent $argmaxJ(W) = \frac{|W^T S_b W|}{|W^T S_w W|}$，满足取最大值时的投影变换就是我们需要的LDA变换。\\ 
+				\indent 通过数学变换，这个$W$就是满足${S_b}{W_i}  = {\lambda_i}{S_w}{W_i}$的解，其求解过程是在求${S_w^{-1}}{S_b}$的特征值和特征向量，我们可以利用上文中的$K-L$变换进行计算。
+				
+	\section{\H 实验结果和结论}
+		\paragraph \indent 本文用上述算法编写了matlab代码，并且使用了yale人脸数据库，一共15个人，每个人11张头像。
+		\paragraph \indent 每个人选择7张图片，总共105张图片构成训练集，剩余$15*4$张图片用于测试人脸识别的准确率，先后使用$PCA$和$PCA+LDA$进行试验，以下是实验结果。
+			\[
+				\begin{tabular}{|c|c|c|c|}
+					\hline
+					方法 & 识别正确数 & 识别错误数 & 正确率 \\ 
+					\hline
+					PCA & 51 & 9 &85\% \\
+					\hline
+					PCA+LDA & 53 & 7 & 88.33\% \\
+					\hline
+				\end{tabular}
+			\]
+	\paragraph \indent 试验表明，PCA算法具有非常好的人脸识别率，而运用LDA算法能将PCA算法的正确率进一步提高，具有非常好的实用前景。
+	
+	\section{\H 参考文献}
+		$[1]主成分分析. http://baike.baidu.com/view/45376.htm$
+		$[2]K-L变换. http://blog.sina.com.cn/s/blog_4b12446d01014y9w.html$
+		$[3]线性判别分析(Linear Discriminant Analysis, LDA)算法分析. http://blog.csdn.net/warmyellow/article/details/5454943$
+	
+	
+\end{multicols}
+	
+
+
+\end{document}
